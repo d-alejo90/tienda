@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Product;
 use Illuminate\Http\Request;
+use App\Helpers\WebServiceManagerCurl;
 
 class ProductController extends Controller
 {
@@ -18,8 +19,12 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $data = Product::get();
-        return view('product/list', compact('data'));
+        $products = Product::get();
+        foreach ($products as &$product) {
+            $sale_price = $this->recalculatePrice($product);
+            $product->sale_price = $sale_price;
+        }        
+        return view('product/list', compact('products'));
     }
 
     private static function getRange($weight)
@@ -65,13 +70,26 @@ class ProductController extends Controller
         }
     }
 
+    private static function getTrm() {
+        try {
+            $url = "http://apilayer.net/api/live?access_key=" . env('CURRENCY_LAYER_ACCESS_KEY') . "&currencies=COP";
+            $api = new WebServiceManagerCurl($url);
+            $response = \json_decode($api->get());
+            return $response->quotes->USDCOP;
+        } catch (Exception $e) {
+            print_r($e);
+        }
+    }
+
     private function recalculatePrice(Product $product) 
     {
         $range = self::getRange($product->weight);
-        $comision = $product->price * self::getComission($range, $product->post_type);
-        $trm = 3000; // TODO
+        $comission = $product->price * self::getComission($range, $product->post_type);
+        print_r($comission);
+        $trm = self::getTrm();; // TODO
         $basePrice = (($product->price + ($product->weight * 10) + $comission) * $trm);
-        $totalPrice = ($product->post_type == 'Basica') ? $basePrice + ($basePrice * 0.16) : $basePrice + ($basePrice * 0.14);        
+        $totalPrice = ($product->post_type == 'Basica') ? $basePrice + ($basePrice * 0.16) : $basePrice + ($basePrice * 0.14);
+        return $basePrice;
     }
 
     /**

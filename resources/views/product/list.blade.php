@@ -13,18 +13,20 @@
                             <th>id</th>
                             <th>Name</th>
                             <th>Category</th>
-                            <th>Price</th>
+                            <th>Original Price (USD)</th>
+                            <th>Sale Price (COP)</th>
                             <th>Weight</th>
                             <th>Qty</th>
                             <th>Type</th>
                             <th>State</th>
                         </tr>
-                        @foreach($data as $row)
+                        @foreach($products as $row)
                             <tr>
                                 <td>{{$row->id}}</td>
                                 <td>{{$row->name}}</td>
                                 <td>{{$row->category_id}}</td>
                                 <td>{{$row->price}}</td>
+                                <td>{{$row->sale_price}}</td>
                                 <td>{{$row->weight}}</td>
                                 <td>{{$row->qty}}</td>
                                 <td>{{$row->post_type}}</td>
